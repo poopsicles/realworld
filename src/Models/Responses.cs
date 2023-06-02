@@ -1,6 +1,6 @@
 using Realworld.Models;
 
-namespace Realworld.Responses;
+namespace Realworld.Models;
 
 public class UserResponse {
     public string email { get; set; }

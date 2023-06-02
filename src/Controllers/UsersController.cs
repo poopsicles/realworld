@@ -12,8 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Realworld.Services;
 using Realworld.Models;
-using Realworld.Requests;
-using Realworld.Responses;
 
 namespace Realworld.Controllers
 {

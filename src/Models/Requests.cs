@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Realworld.Requests;
+namespace Realworld.Models;
 
 public class RegisterUserRequest
 {
