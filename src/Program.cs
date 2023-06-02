@@ -37,33 +37,33 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSwaggerGen(option =>
-{
-    option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo Realworld API", Version = "v1" });
-    option.AddSecurityDefinition("Token", new OpenApiSecurityScheme
-    {
-        In = ParameterLocation.Header,
-        Description = "Please enter a valid token",
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        BearerFormat = "JWT",
-        Scheme = "Token"
-    });
-    option.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type=ReferenceType.SecurityScheme,
-                    Id="Token"
-                }
-            },
-            new string[]{}
-        }
-    });
-});
+// builder.Services.AddSwaggerGen(option =>
+// {
+//     option.SwaggerDoc("v1", new OpenApiInfo { Title = "Demo Realworld API", Version = "v1" });
+//     option.AddSecurityDefinition("Token", new OpenApiSecurityScheme
+//     {
+//         In = ParameterLocation.Header,
+//         Description = "Please enter a valid token",
+//         Name = "Authorization",
+//         Type = SecuritySchemeType.Http,
+//         BearerFormat = "JWT",
+//         Scheme = "Token"
+//     });
+//     option.AddSecurityRequirement(new OpenApiSecurityRequirement
+//     {
+//         {
+//             new OpenApiSecurityScheme
+//             {
+//                 Reference = new OpenApiReference
+//                 {
+//                     Type=ReferenceType.SecurityScheme,
+//                     Id="Token"
+//                 }
+//             },
+//             new string[]{}
+//         }
+//     });
+// });
 
 var app = builder.Build();
 
