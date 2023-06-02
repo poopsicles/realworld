@@ -1,17 +1,19 @@
 namespace Realworld.Models;
 
-public class UserModel {
+public class UserModel
+{
     public Guid ID { get; set; }
     public string username { get; set; } = null!;
     public string password { get; set; } = null!;
     public string email { get; set; } = null!;
-    public string bio { get; set; } = null!;
+    public string bio { get; set; } = "";
     public Uri image { get; set; } = new Uri("https://static.productionready.io/images/smiley-cyrus.jpg");
     public List<UserModel> usersFollowing { get; set; } = new(); // Collection nav. of users followed, M:N
     public List<ArticleModel> favouriteArticles { get; set; } = new(); // Collection nav. of fave articles, M:N
 }
 
-public class ArticleModel {
+public class ArticleModel
+{
     public int ID { get; set; }
     public string title { get; set; } = null!;
     public string slug { get; set; } = null!;
@@ -24,10 +26,10 @@ public class ArticleModel {
     public DateTime updatedAt { get; set; } = DateTime.Now.ToUniversalTime();
     public int favoritesCount { get; set; }
     public List<CommentModel> comments { get; set; } = new List<CommentModel>(); // Collection nav. for comments, 1:M
-
 }
 
-public class CommentModel {
+public class CommentModel
+{
     public int ID { get; set; }
     public string body { get; set; } = null!;
     public Guid authorID { get; set; } // FK for comment author, 1:M
@@ -38,7 +40,8 @@ public class CommentModel {
     public DateTime updatedAt { get; set; } = DateTime.Now.ToUniversalTime();
 }
 
-public class TagModel {
+public class TagModel
+{
     public int ID { get; set; }
     public string name { get; set; } = null!;
 }

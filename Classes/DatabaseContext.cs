@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Realworld.Models;
 
-namespace Realworld.Contexts;
+namespace Realworld.Services;
 
 public class DatabaseContext : DbContext
 {
