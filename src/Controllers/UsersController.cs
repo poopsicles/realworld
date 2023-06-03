@@ -20,9 +20,9 @@ namespace Realworld.Controllers
     public class UsersController : ControllerBase
     {
         private readonly DatabaseContext _context;
-        private readonly TokenService _tokenService;
+        private readonly ITokenService _tokenService;
 
-        public UsersController(DatabaseContext context, TokenService tokenService)
+        public UsersController(DatabaseContext context, ITokenService tokenService)
         {
             _context = context;
             _tokenService = tokenService;
@@ -91,7 +91,7 @@ namespace Realworld.Controllers
         // POST: api/Users
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<UserResponse>> RegisterUser(RegisterUserRequest request)
+        public async Task<IActionResult> RegisterUser(RegisterUserRequest request)
         {
             if (_context.Users == null) // ensure database is set up correctly
             {

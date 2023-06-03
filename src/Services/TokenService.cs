@@ -5,7 +5,12 @@ using Realworld.Models;
 
 namespace Realworld.Services;
 
-public class TokenService
+public interface ITokenService
+{
+    string CreateToken(UserModel user);
+}
+
+public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
     private const int ExpirationMinutes = 360;
