@@ -15,9 +15,8 @@ public class RegisterUserTests : IDisposable
     private readonly DbConnection _connection;
     private readonly DbContextOptions<DatabaseContext> _contextOptions;
     private readonly TestTokenService _tokenService;
-    private readonly ITestOutputHelper output;
     
-    public RegisterUserTests(ITestOutputHelper output) {
+    public RegisterUserTests() {
         _connection = new SqliteConnection("Filename=:memory:");
         _connection.Open();
 
@@ -29,8 +28,6 @@ public class RegisterUserTests : IDisposable
 
         using var context = new DatabaseContext(_contextOptions);
         context.Database.EnsureCreated();
-
-        this.output = output;
     }
 
     DatabaseContext CreateContext() => new DatabaseContext(_contextOptions);
@@ -138,10 +135,8 @@ public class RegisterUserTests : IDisposable
         var response = Assert.IsType<UserResponse>(objectResult.Value); // Ensures we got a UserResponse
 
         Assert.Equal(2, context.Users.Count());
-        Assert.Equal(username, response.username);
-        Assert.Equal(email, response.email);
-        output.WriteLine(response.token);
-        Assert.True(_tokenService.ValidateToken(response.token, response.username, response.email));
+        Assert.Equal(username, response.user.username);
+        Assert.Equal(email, response.user.email);
+        Assert.True(_tokenService.ValidateToken(response.user.token, response.user.username, response.user.email));
     }
-
 }

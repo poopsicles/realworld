@@ -3,39 +3,53 @@ using Realworld.Models;
 namespace Realworld.Models;
 
 public class UserResponse {
-    public string email { get; set; }
-    public string token { get; set; }
-    public string username { get; set; }
-    public string bio { get; set; }
-    public Uri image { get; set; }
+    public Components user { get; set; } = null!;
 
-    public UserResponse(UserModel user, string token) {
-        email = user.email;
-        username = user.username;
-        bio = user.bio;
-        image = user.image;
-        this.token = token;
+    public class Components {
+        public string email { get; set; } = null!;
+        public string token { get; set; } = null!;
+        public string username { get; set; } = null!;
+        public string bio { get; set; } = null!;
+        public Uri image { get; set; } = null!;
+    }
+
+    public UserResponse(UserModel usermodel, string token) {
+        user = new Components() {
+            email = usermodel.email,
+            username = usermodel.username,
+            bio = usermodel.bio,
+            image = usermodel.image,
+            token = token
+        };
     }
 }
 
 public class ProfileResponse {
-    public string username { get; set; } = null!;
-    public string bio { get; set; } = null!;
-    public Uri image { get; set; } = null!;
-    public bool following { get; set; }
+    public Components profile { get; set; } = null!;
+
+    public class Components {
+        public string username { get; set; } = null!;
+        public string bio { get; set; } = null!;
+        public Uri image { get; set; } = null!;
+        public bool following { get; set; }
+    }
 }
 
 public class ArticleResponse {
-    public string slug { get; set; } = null!;
-    public string title { get; set; } = null!;
-    public string description { get; set; } = null!;
-    public string body { get; set; } = null!;
-    public List<string> tagList { get; set; } = null!;
-    public DateTime createdAt { get; set; }
-    public DateTime updatedAt { get; set; }
-    public bool favorited { get; set; }
-    public int favoritesCount { get; set; }
-    public ProfileResponse author { get; set; } = null!;
+    public Components article { get; set; } = null!;
+
+    public class Components{
+        public string slug { get; set; } = null!;
+        public string title { get; set; } = null!;
+        public string description { get; set; } = null!;
+        public string body { get; set; } = null!;
+        public List<string> tagList { get; set; } = null!;
+        public DateTime createdAt { get; set; }
+        public DateTime updatedAt { get; set; }
+        public bool favorited { get; set; }
+        public int favoritesCount { get; set; }
+        public ProfileResponse.Components author { get; set; } = null!;
+    }
 }
 
 public class ArticleListResponse {
@@ -44,11 +58,15 @@ public class ArticleListResponse {
 }
 
 public class CommentResponse {
-    public int id { get; set; }
-    public DateTime createdAt { get; set; }
-    public DateTime updatedAt { get; set; }
-    public string body { get; set; } = null!;
-    public ProfileResponse author { get; set; } = null!;
+    public Components comment { get; set; } = null!;
+
+    public class Components {
+        public int id { get; set; }
+        public DateTime createdAt { get; set; }
+        public DateTime updatedAt { get; set; }
+        public string body { get; set; } = null!;
+        public ProfileResponse.Components author { get; set; } = null!;
+    }
 }
 
 public class ErrorResponse {
