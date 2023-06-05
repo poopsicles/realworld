@@ -137,6 +137,6 @@ public class RegisterUserTests : IDisposable
         Assert.Equal(2, context.Users.Count());
         Assert.Equal(username, response.user.username);
         Assert.Equal(email, response.user.email);
-        Assert.True(_tokenService.ValidateToken(response.user.token, response.user.username, response.user.email));
+        Assert.True(_tokenService.ValidateToken(response.user.token, username, email));
     }
 }

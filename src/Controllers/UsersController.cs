@@ -29,15 +29,15 @@ namespace Realworld.Controllers
         }
 
         // GET: api/Users
-        [HttpGet, Authorize]
-        public async Task<ActionResult<IEnumerable<UserModel>>> GetUsers()
-        {
-            if (_context.Users == null)
-            {
-                return NotFound();
-            }
-            return await _context.Users.ToListAsync();
-        }
+        // [HttpGet, Authorize]
+        // public async Task<ActionResult<IEnumerable<UserModel>>> GetUsers()
+        // {
+        //     if (_context.Users == null)
+        //     {
+        //         return NotFound();
+        //     }
+        //     return await _context.Users.ToListAsync();
+        // }
 
         // GET: api/Users/5
         // [HttpGet("{id}")]
@@ -89,7 +89,9 @@ namespace Realworld.Controllers
         // }
 
         // POST: api/Users
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        // Registers a user, with a unique username and email
+        // Success: Returns a UserResponse containing the user's information and a JWT token
+        // Failure: Returns an ErrorResponse containing a list of errors
         [HttpPost]
         public async Task<IActionResult> RegisterUser(RegisterUserRequest request)
         {
@@ -98,34 +100,7 @@ namespace Realworld.Controllers
                 return Problem("Entity set 'DatabaseContext.Users' is null.");
             }
 
-            var errorlist = new ErrorResponse();
-
-            if (String.IsNullOrWhiteSpace(request.user.username)) // validate username
-            {
-                errorlist.errors.Add("username", "can't be empty");
-            }
-
-            if (String.IsNullOrWhiteSpace(request.user.email)) // validate email
-            {
-                errorlist.errors.Add("email", "can't be empty");
-            }
-
-            if (String.IsNullOrWhiteSpace(request.user.password)) // validate password
-            {
-                errorlist.errors.Add("password", "can't be empty");
-            }
-
-            // ensure username is not already taken
-            if (await _context.Users.FirstOrDefaultAsync(u => u.username == request.user.username) != null)
-            {
-                errorlist.errors.Add("username", "already exists in database");
-            }
-
-            // ensure email is not already taken
-            if (await _context.Users.FirstOrDefaultAsync(u => u.email == request.user.email) != null)
-            {
-                errorlist.errors.Add("email", "already exists in database");
-            }
+            var errorlist = await request.Validate(_context); // validate request
 
             // if any errors were found, return them
             if (errorlist.errors.Count != 0)
@@ -149,6 +124,46 @@ namespace Realworld.Controllers
             // 201 with new user
             return CreatedAtAction(nameof(RegisterUser), new UserResponse(newUser, token));
         }
+
+        // POST: api/Users/login
+        // Logs in a user, with a supplied username and password
+        // Success: Returns a UserResponse containing the user's information and a JWT token
+        // Failure: Returns an ErrorResponse containing a list of errors
+        [HttpPost("login")]
+        public async Task<IActionResult> LoginUser(LoginUserRequest request) {
+            if (_context.Users == null) // ensure database is set up correctly
+            {
+                return Problem("Entity set 'DatabaseContext.Users' is null.");
+            }
+
+            var errorlist = request.ValidateWhitespace(); // validate request
+
+            // if any whitespace errors were found, return them
+            if (errorlist.errors.Count != 0)
+            {
+                return UnprocessableEntity(errorlist); // 422 with errors
+            }
+
+            var requestedUser = await _context.Users.Where(u => u.email == request.user.email).FirstOrDefaultAsync();
+
+            errorlist = request.ValidateUser(requestedUser); // validate request
+            
+            if (errorlist.errors.Count != 0)
+            {
+                // if the user doesn't exist
+                if (errorlist.errors.ContainsValue("doesn't exist in database")) {
+                    return NotFound(errorlist); // 404 with errors
+                }
+
+                return UnprocessableEntity(errorlist); // 422 with errors
+            }
+
+            var token = _tokenService.CreateToken(requestedUser!);
+            
+            // 200 with user
+            return Ok(new UserResponse(requestedUser!, token));
+        }
+
 
         // DELETE: api/Users/5
         // [HttpDelete("{id}")]
