@@ -19,6 +19,11 @@ public class TokenService : ITokenService
         _configuration = configuration;
     }
 
+    /// <summary>
+    /// Creates a JWT that contains a user's claims
+    /// </summary>
+    /// <param name="user"></param>
+    /// <returns>The JWT in Compact Serialization Format.</returns>
     public string CreateToken(UserModel user)
     {
         var issuer = _configuration["Jwt:Issuer"];
@@ -30,8 +35,8 @@ public class TokenService : ITokenService
             Subject = new ClaimsIdentity(new[]
              {
                 new Claim("Id", user.ID.ToString()),
-                new Claim(JwtRegisteredClaimNames.Sub, user.username),
-                new Claim(JwtRegisteredClaimNames.Email, user.email),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Username),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
              }),
             Expires = DateTime.UtcNow.AddMinutes(ExpirationMinutes),

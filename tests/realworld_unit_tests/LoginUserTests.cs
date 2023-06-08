@@ -31,7 +31,7 @@ public class LoginUserTests : IDisposable
         context.Database.EnsureCreated();
     }
 
-    DatabaseContext CreateContext() => new DatabaseContext(_contextOptions);
+    DatabaseContext CreateContext() => new(_contextOptions);
 
     public void Dispose() => _connection.Dispose();
 
@@ -45,19 +45,19 @@ public class LoginUserTests : IDisposable
         using var context = CreateContext();
         context.Users.Add(new UserModel()
         {
-            email = "testuser@office.com",
-            username = "testuser",
-            password = "testpassword"
+            Email = "testuser@office.com",
+            Username = "testuser",
+            Password = "testpassword"
         });
         context.SaveChanges();
 
         var controller = new UsersController(context, _tokenService);
         var request = new LoginUserRequest()
         {
-            user = new LoginUserRequest.Components()
+            User = new LoginUserRequest.Components()
             {
-                email = email,
-                password = password
+                Email = email,
+                Password = password
             }
         };
 
@@ -69,11 +69,11 @@ public class LoginUserTests : IDisposable
         var errorlist = Assert.IsType<ErrorResponse>(objectResult.Value); // Ensures we got an ErrorResponse
 
         // Ensures the correct errors are in the ErrorResponse
-        Assert.Equal(missing.Count(), errorlist.errors.Count);
+        Assert.Equal(missing.Count(), errorlist.Errors.Count);
         foreach (var elem in missing)
         {
-            Assert.Contains(elem, errorlist.errors.Keys);
-            Assert.Equal("can't be empty", errorlist.errors[elem]);
+            Assert.Contains(elem, errorlist.Errors.Keys);
+            Assert.Equal("can't be empty", errorlist.Errors[elem]);
         }
     }
 
@@ -84,19 +84,19 @@ public class LoginUserTests : IDisposable
         using var context = CreateContext();
         context.Users.Add(new UserModel()
         {
-            email = "testuser@office.com",
-            username = "testuser",
-            password = "testpassword"
+            Email = "testuser@office.com",
+            Username = "testuser",
+            Password = "testpassword"
         });
         context.SaveChanges();
 
         var controller = new UsersController(context, _tokenService);
         var request = new LoginUserRequest()
         {
-            user = new LoginUserRequest.Components()
+            User = new LoginUserRequest.Components()
             {
-                email = "me@me.com",
-                password = "password"
+                Email = "me@me.com",
+                Password = "password"
             }
         };
 
@@ -108,7 +108,7 @@ public class LoginUserTests : IDisposable
         var errorlist = Assert.IsType<ErrorResponse>(objectResult.Value); // Ensures we got an ErrorResponse
 
         // Ensures the correct error is in the ErrorResponse
-        Assert.Equal(new KeyValuePair<string, string>("email", "doesn't exist in database"), errorlist.errors.First()); 
+        Assert.Equal(new KeyValuePair<string, string>("email", "doesn't exist in database"), errorlist.Errors.First()); 
     }
 
     [Fact]
@@ -118,9 +118,9 @@ public class LoginUserTests : IDisposable
         using var context = CreateContext();
         context.Users.Add(new UserModel()
         {
-            username = "testuser",
-            email = "me@me.com",
-            password = "password123"
+            Username = "testuser",
+            Email = "me@me.com",
+            Password = "password123"
         });
 
         context.SaveChanges();
@@ -128,10 +128,10 @@ public class LoginUserTests : IDisposable
         var controller = new UsersController(context, _tokenService);
         var request = new LoginUserRequest()
         {
-            user = new LoginUserRequest.Components()
+            User = new LoginUserRequest.Components()
             {
-                email = "me@me.com",
-                password = "password"
+                Email = "me@me.com",
+                Password = "password"
             }
         };
 
@@ -143,7 +143,7 @@ public class LoginUserTests : IDisposable
         var errorlist = Assert.IsType<ErrorResponse>(objectResult.Value); // Ensures we got an ErrorResponse
 
         // Ensures the correct error is in the ErrorResponse
-        Assert.Equal(new KeyValuePair<string, string>("password", "is incorrect"), errorlist.errors.First());
+        Assert.Equal(new KeyValuePair<string, string>("password", "is incorrect"), errorlist.Errors.First());
     }
 
     [Theory]
@@ -155,15 +155,15 @@ public class LoginUserTests : IDisposable
         using var context = CreateContext();
         context.Users.Add(new UserModel()
         {
-            username = "testuser",
-            email = "me@me.com",
-            password = "password123"
+            Username = "testuser",
+            Email = "me@me.com",
+            Password = "password123"
         });
         context.Users.Add(new UserModel()
         {
-            username = "admin",
-            email = "admin@me.com",
-            password = "root"
+            Username = "admin",
+            Email = "admin@me.com",
+            Password = "root"
         });
 
         context.SaveChanges();
@@ -171,10 +171,10 @@ public class LoginUserTests : IDisposable
         var controller = new UsersController(context, _tokenService);
         var request = new LoginUserRequest()
         {
-            user = new LoginUserRequest.Components()
+            User = new LoginUserRequest.Components()
             {
-                email = email,
-                password = password
+                Email = email,
+                Password = password
             }
         };
 
@@ -186,7 +186,7 @@ public class LoginUserTests : IDisposable
         var response = Assert.IsType<UserResponse>(objectResult.Value); // Ensures we got an ErrorResponse
 
         Assert.Equal(2, context.Users.Count());
-        Assert.Equal(email, response.user.email);
-        Assert.True(_tokenService.ValidateToken(response.user.token, username, email));
+        Assert.Equal(email, response.User.Email);
+        Assert.True(_tokenService.ValidateToken(response.User.Token, username, email));
     }
 }

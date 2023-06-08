@@ -8,10 +8,15 @@ namespace realworld_unit_tests;
 
 public class TestTokenService : ITokenService
 {
-    string _key = "SUPERSECRETKEY!!";
-    string _issuer = "TestIssuer";
-    string _audience = "TestAudience";
+    private readonly string _key = "SUPERSECRETKEY!!";
+    private readonly string _issuer = "TestIssuer";
+    private readonly string _audience = "TestAudience";
 
+    /// <summary>
+    /// Creates a JWT that contains a user's claims
+    /// </summary>
+    /// <param name="user"></param>
+    /// <returns>The JWT in Compact Serialization Format.</returns>
     public string CreateToken(UserModel user)
     {
         var tokenDescriptor = new SecurityTokenDescriptor
@@ -19,8 +24,8 @@ public class TestTokenService : ITokenService
             Subject = new ClaimsIdentity(new[]
              {
                 new Claim("Id", user.ID.ToString()),
-                new Claim(JwtRegisteredClaimNames.Sub, user.username),
-                new Claim(JwtRegisteredClaimNames.Email, user.email),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Username),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
              }),
             Expires = DateTime.UtcNow.AddMinutes(1),
@@ -37,6 +42,13 @@ public class TestTokenService : ITokenService
         return tokenHandler.WriteToken(token);
     }
 
+    /// <summary>
+    /// Checks if a token was signed with the username and email provided
+    /// </summary>
+    /// <param name="token"></param>
+    /// <param name="username"></param>
+    /// <param name="email"></param>
+    /// <returns>true if the token is valid, false if not</returns>
     public bool ValidateToken(string token, string username, string email) {
         var tokenHandler = new JwtSecurityTokenHandler();
         var validationParameters = new TokenValidationParameters
@@ -62,5 +74,10 @@ public class TestTokenService : ITokenService
         }
 
         return true;
+    }
+
+    internal bool ValidateToken(object token, string username, string email)
+    {
+        throw new NotImplementedException();
     }
 }

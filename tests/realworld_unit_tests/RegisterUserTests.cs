@@ -6,7 +6,6 @@ using Realworld.Controllers;
 using Realworld.Models;
 using Realworld.Services;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace realworld_unit_tests;
 
@@ -30,7 +29,7 @@ public class RegisterUserTests : IDisposable
         context.Database.EnsureCreated();
     }
 
-    DatabaseContext CreateContext() => new DatabaseContext(_contextOptions);
+    DatabaseContext CreateContext() => new(_contextOptions);
 
     public void Dispose() => _connection.Dispose();
 
@@ -45,10 +44,10 @@ public class RegisterUserTests : IDisposable
         using var context = CreateContext();
         var controller = new UsersController(context, _tokenService);
         var request = new RegisterUserRequest() {
-            user = new RegisterUserRequest.Components() {
-                username = username,
-                email = email,
-                password = password
+            User = new RegisterUserRequest.Components() {
+                Username = username,
+                Email = email,
+                Password = password
             }
         };
 
@@ -60,10 +59,10 @@ public class RegisterUserTests : IDisposable
         var errorlist = Assert.IsType<ErrorResponse>(objectResult.Value); // Ensures we got an ErrorResponse
 
         // Ensures the correct errors are in the ErrorResponse
-        Assert.Equal(missing.Count(), errorlist.errors.Count); 
+        Assert.Equal(missing.Count(), errorlist.Errors.Count); 
         foreach (var elem in missing) {
-            Assert.Contains(elem, errorlist.errors.Keys); 
-            Assert.Equal("can't be empty", errorlist.errors[elem]);
+            Assert.Contains(elem, errorlist.Errors.Keys); 
+            Assert.Equal("can't be empty", errorlist.Errors[elem]);
         }
     }
 
@@ -75,18 +74,18 @@ public class RegisterUserTests : IDisposable
         // Arrange
         using var context = CreateContext();
         context.Users.Add(new UserModel() {
-            username = "testuser",
-            email = "test@example.com",
-            password = "testpassword"
+            Username = "testuser",
+            Email = "test@example.com",
+            Password = "testpassword"
         });
         context.SaveChanges();
 
         var controller = new UsersController(context, _tokenService);
         var request = new RegisterUserRequest() {
-            user = new RegisterUserRequest.Components() {
-                username = username,
-                email = email,
-                password = "password"
+            User = new RegisterUserRequest.Components() {
+                Username = username,
+                Email = email,
+                Password = "password"
             }
         };
 
@@ -98,10 +97,10 @@ public class RegisterUserTests : IDisposable
         var errorlist = Assert.IsType<ErrorResponse>(objectResult.Value); // Ensures we got an ErrorResponse
 
         // Ensures the correct errors are in the ErrorResponse
-        Assert.Equal(duplicate.Count(), errorlist.errors.Count); 
+        Assert.Equal(duplicate.Count(), errorlist.Errors.Count);
         foreach (var elem in duplicate) {
-            Assert.Contains(elem, errorlist.errors.Keys); 
-            Assert.Equal("already exists in database", errorlist.errors[elem]);
+            Assert.Contains(elem, errorlist.Errors.Keys); 
+            Assert.Equal("already exists in database", errorlist.Errors[elem]);
         }
     }
 
@@ -112,18 +111,18 @@ public class RegisterUserTests : IDisposable
         // Arrange
         using var context = CreateContext();
         context.Users.Add(new UserModel() {
-            username = "admin",
-            email = "admin@example.com",
-            password = "root"
+            Username = "admin",
+            Email = "admin@example.com",
+            Password = "root"
         });
         context.SaveChanges();
 
         var controller = new UsersController(context, _tokenService);
         var request = new RegisterUserRequest() {
-            user = new RegisterUserRequest.Components() {
-                username = username,
-                email = email,
-                password = password
+            User = new RegisterUserRequest.Components() {
+                Username = username,
+                Email = email,
+                Password = password
             }
         };
 
@@ -135,8 +134,8 @@ public class RegisterUserTests : IDisposable
         var response = Assert.IsType<UserResponse>(objectResult.Value); // Ensures we got a UserResponse
 
         Assert.Equal(2, context.Users.Count());
-        Assert.Equal(username, response.user.username);
-        Assert.Equal(email, response.user.email);
-        Assert.True(_tokenService.ValidateToken(response.user.token, username, email));
+        Assert.Equal(username, response.User.Username);
+        Assert.Equal(email, response.User.Email);
+        Assert.True(_tokenService.ValidateToken(response.User.Token, username, email));
     }
 }

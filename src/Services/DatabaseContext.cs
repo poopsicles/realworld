@@ -13,7 +13,7 @@ public class DatabaseContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<UserModel>() // M:N users to usersFollowing
-            .HasMany(u => u.usersFollowing)
+            .HasMany(u => u.UsersFollowing)
             .WithMany()
             .UsingEntity(
                 "UserFollowing",
@@ -22,7 +22,7 @@ public class DatabaseContext : DbContext
             );
 
         modelBuilder.Entity<UserModel>() // M:N users to favouriteArticles
-            .HasMany(u => u.favouriteArticles)
+            .HasMany(u => u.FavouriteArticles)
             .WithMany()
             .UsingEntity(
                 "UserFavouriteArticles",
@@ -31,19 +31,19 @@ public class DatabaseContext : DbContext
             );
 
         modelBuilder.Entity<ArticleModel>() // 1:M article to comments
-            .HasMany(a => a.comments)
-            .WithOne(c => c.article)
-            .HasForeignKey(c => c.articleID)
+            .HasMany(a => a.Comments)
+            .WithOne(c => c.Article)
+            .HasForeignKey(c => c.ArticleID)
             .IsRequired();
 
         modelBuilder.Entity<ArticleModel>() // 1:M articles to author
-            .HasOne(a => a.author)
+            .HasOne(a => a.Author)
             .WithMany()
-            .HasForeignKey(a => a.authorID)
+            .HasForeignKey(a => a.AuthorID)
             .IsRequired();
 
         modelBuilder.Entity<ArticleModel>() // M:N articles to tags
-            .HasMany(a => a.tags)
+            .HasMany(a => a.Tags)
             .WithMany()
             .UsingEntity(
                 "ArticleTags",
@@ -52,9 +52,9 @@ public class DatabaseContext : DbContext
             );
 
         modelBuilder.Entity<CommentModel>() // 1:M comments to author
-            .HasOne(c => c.author)
+            .HasOne(c => c.Author)
             .WithMany()
-            .HasForeignKey(c => c.authorID)
+            .HasForeignKey(c => c.AuthorID)
             .IsRequired();
     }
 

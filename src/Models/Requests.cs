@@ -6,69 +6,70 @@ namespace Realworld.Models;
 
 public class RegisterUserRequest
 {
-    public Components user { get; set; } = null!;
+    public Components User { get; set; } = null!;
     public class Components
     {
-        public string username { get; set; } = null!;
-        public string email { get; set; } = null!;
-        public string password { get; set; } = null!;
+        public string Username { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public string Password { get; set; } = null!;
     }
 
     public async Task<ErrorResponse> Validate(DatabaseContext context)
     {
         var errorlist = new ErrorResponse();
 
-        if (String.IsNullOrWhiteSpace(user.username)) // validate username
+        if (String.IsNullOrWhiteSpace(User.Username)) // validate username
         {
-            errorlist.errors.Add("username", "can't be empty");
+            errorlist.Errors.Add("username", "can't be empty");
         }
 
-        if (String.IsNullOrWhiteSpace(user.email)) // validate email
+        if (String.IsNullOrWhiteSpace(User.Email)) // validate email
         {
-            errorlist.errors.Add("email", "can't be empty");
+            errorlist.Errors.Add("email", "can't be empty");
         }
 
-        if (String.IsNullOrWhiteSpace(user.password)) // validate password
+        if (String.IsNullOrWhiteSpace(User.Password)) // validate password
         {
-            errorlist.errors.Add("password", "can't be empty");
+            errorlist.Errors.Add("password", "can't be empty");
         }
 
         // ensure username is not already taken
-        if (await context.Users.FirstOrDefaultAsync(u => u.username == user.username) != null)
+        if (await context.Users.FirstOrDefaultAsync(u => u.Username == User.Username) != null)
         {
-            errorlist.errors.Add("username", "already exists in database");
+            errorlist.Errors.Add("username", "already exists in database");
         }
 
         // ensure email is not already taken
-        if (await context.Users.FirstOrDefaultAsync(u => u.email == user.email) != null)
+        if (await context.Users.FirstOrDefaultAsync(u => u.Email == User.Email) != null)
         {
-            errorlist.errors.Add("email", "already exists in database");
+            errorlist.Errors.Add("email", "already exists in database");
         }
 
         return errorlist;
     }
 }
 
-public class LoginUserRequest {
-    public Components user { get; set; } = null!;
-
-    public class Components {
-        public string email { get; set; } = null!;
-        public string password { get; set; } = null!;
+public class LoginUserRequest
+{
+    public Components User { get; set; } = null!;
+    public class Components
+    {
+        public string Email { get; set; } = null!;
+        public string Password { get; set; } = null!;
     }
 
     public ErrorResponse ValidateWhitespace()
     {
         var errorlist = new ErrorResponse();
 
-        if (String.IsNullOrWhiteSpace(user.email)) // validate email
+        if (String.IsNullOrWhiteSpace(User.Email)) // validate email
         {
-            errorlist.errors.Add("email", "can't be empty");
+            errorlist.Errors.Add("email", "can't be empty");
         }
 
-        if (String.IsNullOrWhiteSpace(user.password)) // validate password
+        if (String.IsNullOrWhiteSpace(User.Password)) // validate password
         {
-            errorlist.errors.Add("password", "can't be empty");
+            errorlist.Errors.Add("password", "can't be empty");
         }
 
         return errorlist;
@@ -80,12 +81,13 @@ public class LoginUserRequest {
 
         if (requestedUser == null)
         {
-            errorlist.errors.Add("email", "doesn't exist in database");
+            errorlist.Errors.Add("email", "doesn't exist in database");
             return errorlist;
-        } 
-        
-        if (requestedUser.password != user.password) {
-            errorlist.errors.Add("password", "is incorrect");
+        }
+
+        if (requestedUser.Password != User.Password)
+        {
+            errorlist.Errors.Add("password", "is incorrect");
         }
 
         return errorlist;
