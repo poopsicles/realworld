@@ -76,8 +76,11 @@ public class TestTokenService : ITokenService
         return true;
     }
 
-    internal bool ValidateToken(object token, string username, string email)
-    {
-        throw new NotImplementedException();
+    public IEnumerable<Claim> GetTokenClaims(string token) {
+        var tokenHandler = new JwtSecurityTokenHandler();
+
+        var jwt = tokenHandler.ReadJwtToken(token);
+
+        return jwt.Claims;
     }
 }
