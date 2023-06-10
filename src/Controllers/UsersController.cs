@@ -27,8 +27,8 @@ namespace Realworld.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns>
-        /// On success: A <c>UserResponse</c> containing the user's information and a JWT token <br />
-        /// On failure: A 401 Unauthorized response
+        /// If successful, an <c>UserResponse</c> containing the user's information and a JWT token <br />
+        /// Else, a 401 Unauthorized response
         /// </returns>
         [HttpGet, Authorize, Route("/api/User")]
         public async Task<IActionResult> GetUserInfo()
@@ -39,68 +39,77 @@ namespace Realworld.Controllers
                 return Unauthorized();
             }
 
-            // get the username from the claims
-            var username = User.Claims
-                .Where(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")
-                .First().Value;
-            var requestedUser = await _context.Users.FirstAsync(u => u.Username == username);
+            var requestedUser = await GetRequestedUserFromClaims();
 
-            // get the token from the headers
+            if (requestedUser == null)
+            {
+                return Unauthorized();
+            }
+
             // var token = await HttpContext.GetTokenAsync("access_token");
-            var token = Request.Headers.Authorization.ToString()["Token ".Length..].Trim();
+            // reuse old token
+            var token = GetTokenFromHeaders();
 
             var response = new UserResponse(requestedUser, token!);
             return Ok(response);
         }
 
-        // GET: api/Users/5
-        // [HttpGet("{id}")]
-        // public async Task<ActionResult<UserModel>> GetUserModel(Guid id)
-        // {
-        //     if (_context.Users == null)
-        //     {
-        //         return NotFound();
-        //     }
-        //     var userModel = await _context.Users.FindAsync(id);
+        /// <summary>
+        /// PUT: api/User<br />
+        /// Updates an authorised user's information
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns>
+        /// If unauthorised, a 401 Unauthrorized response
+        /// If successful, an <c>UserResponse</c> containing the user's information and a JWT token <br />
+        /// Else, an <c>ErrorResponse</c> containing a list of errors
+        /// </returns>
+        [HttpPut, Authorize, Route("/api/User")]
+        public async Task<IActionResult> UpdateUserInfo(UpdateUserRequest request)
+        {
+            // [Authorize] handles this, but to make unit testing easier
+            if (User == null)
+            {
+                return Unauthorized();
+            }
 
-        //     if (userModel == null)
-        //     {
-        //         return NotFound();
-        //     }
+            var requestedUser = await GetRequestedUserFromClaims();
 
-        //     return userModel;
-        // }
+            if (requestedUser == null)
+            {
+                return Unauthorized();
+            }
 
-        // PUT: api/Users/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        // [HttpPut("{id}")]
-        // public async Task<IActionResult> PutUserModel(Guid id, UserModel userModel)
-        // {
-        //     if (id != userModel.ID)
-        //     {
-        //         return BadRequest();
-        //     }
+            var errorlist = request.ValidateWhitespace();
 
-        //     _context.Entry(userModel).State = EntityState.Modified;
+            // if any errors were found, return them
+            if (errorlist.Errors.Count != 0)
+            {
+                return UnprocessableEntity(errorlist); // 422 with errors
+            }
 
-        //     try
-        //     {
-        //         await _context.SaveChangesAsync();
-        //     }
-        //     catch (DbUpdateConcurrencyException)
-        //     {
-        //         if (!UserModelExists(id))
-        //         {
-        //             return NotFound();
-        //         }
-        //         else
-        //         {
-        //             throw;
-        //         }
-        //     }
+            errorlist = await request.ValidateUniqueness(requestedUser, _context); 
 
-        //     return NoContent();
-        // }
+            // if any errors were found, return them
+            if (errorlist.Errors.Count != 0)
+            {
+                return UnprocessableEntity(errorlist); // 422 with errors
+            }
+
+            // update user
+            if (request.User.Username != null) { requestedUser.Username = request.User.Username.Trim(); }
+            if (request.User.Email != null) { requestedUser.Email = request.User.Email.Trim(); }
+            if (request.User.Password != null) { requestedUser.Password = request.User.Password; }
+            if (request.User.Image != null) { requestedUser.Image = new Uri(request.User.Image); }
+            if (request.User.Bio != null) { requestedUser.Bio = request.User.Bio.Trim(); }
+
+            await _context.SaveChangesAsync();
+
+            // regenerate token with new claims
+            var token = _tokenService.CreateToken(requestedUser);
+            
+            return Ok(new UserResponse(requestedUser, token));
+        }
 
         /// <summary>
         /// POST: api/Users<br />
@@ -108,8 +117,8 @@ namespace Realworld.Controllers
         /// </summary>
         /// <param name="request"></param>
         /// <returns>
-        /// On success: A <c>UserResponse</c> containing the user's information and a JWT token<br />
-        /// On failure: An <c>ErrorResponse</c> containing a list of errors
+        /// If successful, an <c>UserResponse</c> containing the user's information and a JWT token
+        /// Else, an <c>ErrorResponse</c> containing a list of errors
         /// </returns>
         [HttpPost]
         public async Task<IActionResult> RegisterUser(RegisterUserRequest request)
@@ -119,9 +128,9 @@ namespace Realworld.Controllers
                 return Problem("Entity set 'DatabaseContext.Users' is null.");
             }
 
-            var errorlist = await request.Validate(_context); // validate request
+            var errorlist = await request.Validate(_context);
 
-            // if any errors were found, return them
+            // return any found errors
             if (errorlist.Errors.Count != 0)
             {
                 return UnprocessableEntity(errorlist); // 422 with errors
@@ -130,9 +139,9 @@ namespace Realworld.Controllers
             // create new user, store, and generate token
             var newUser = new UserModel()
             {
-                Username = request.User.Username,
+                Username = request.User.Username.Trim(),
                 Password = request.User.Password,
-                Email = request.User.Email
+                Email = request.User.Email.Trim()
             };
 
             await _context.Users.AddAsync(newUser);
@@ -161,9 +170,9 @@ namespace Realworld.Controllers
                 return Problem("Entity set 'DatabaseContext.Users' is null.");
             }
 
-            var errorlist = request.ValidateWhitespace(); // validate request
+            var errorlist = request.ValidateWhitespace();
 
-            // if any whitespace errors were found, return them
+            // return any found whitespace errors
             if (errorlist.Errors.Count != 0)
             {
                 return UnprocessableEntity(errorlist); // 422 with errors
@@ -173,8 +182,9 @@ namespace Realworld.Controllers
                 .Where(u => u.Email.ToLower() == request.User.Email.ToLower())
                 .FirstOrDefaultAsync();
 
-            errorlist = request.ValidateUser(requestedUser); // validate request
+            errorlist = request.ValidateSemantics(requestedUser);
 
+            // return any found semantic errors
             if (errorlist.Errors.Count != 0)
             {
                 // if the user doesn't exist
@@ -192,30 +202,41 @@ namespace Realworld.Controllers
             return Ok(new UserResponse(requestedUser!, token));
         }
 
-
-        // DELETE: api/Users/5
-        // [HttpDelete("{id}")]
-        // public async Task<IActionResult> DeleteUserModel(Guid id)
-        // {
-        //     if (_context.Users == null)
-        //     {
-        //         return NotFound();
-        //     }
-        //     var userModel = await _context.Users.FindAsync(id);
-        //     if (userModel == null)
-        //     {
-        //         return NotFound();
-        //     }
-
-        //     _context.Users.Remove(userModel);
-        //     await _context.SaveChangesAsync();
-
-        //     return NoContent();
-        // }
-
         private bool UserModelExists(Guid id)
         {
             return (_context.Users?.Any(e => e.ID == id)).GetValueOrDefault();
+        }
+
+        private string GetTokenFromHeaders()
+        {
+            return Request.Headers.Authorization.ToString()["Token ".Length..].Trim();
+        }
+
+        private async Task<UserModel?> GetRequestedUserFromClaims()
+        {
+            var claimedUsername = User.Claims
+                .Where(c => c.Type == ClaimTypes.NameIdentifier || c.Type == "sub")
+                .First().Value;
+
+            var claimedID = Guid.Parse(User.Claims
+                .Where(c => c.Type == "Id")
+                .First().Value);
+
+            var claimedEmail = User.Claims
+                .Where(c => c.Type == ClaimTypes.Email || c.Type == "email")
+                .First().Value;
+
+            var user = await _context.Users.FirstAsync(u => u.ID == claimedID);
+
+            // all the claims must match up
+            if (user == null ||
+                user.Username.ToLower() != claimedUsername.ToLower() ||
+                user.Email.ToLower() != claimedEmail.ToLower())
+            {
+                return null;
+            }
+
+            return user;
         }
     }
 }
