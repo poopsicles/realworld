@@ -36,7 +36,7 @@ public class GetUserInfoTests : IDisposable
 
     public void Dispose() => _connection.Dispose();
 
-    [Fact]
+    [Fact(DisplayName = "GET user info while unauthorised returns 401")]
     public async Task GetUserInfoWhileUnauthorised_Returns401()
     {
         // Arrange
@@ -50,8 +50,10 @@ public class GetUserInfoTests : IDisposable
         var objectResult = Assert.IsType<UnauthorizedResult>(result); // Ensures we got a 401
     }
 
-    [Fact]
-    public async Task GetUserInfoWhileAuthorised_Returns200()
+    [Theory(DisplayName = "GET user info while authorised returns 200")]
+    [InlineData("test@user.com", "password")]
+    [InlineData("TEST@user.com", "password")]
+    public async Task GetUserInfoWhileAuthorised_Returns200(string email, string password)
     {
         // Arrange
         using var context = CreateContext();
@@ -59,25 +61,29 @@ public class GetUserInfoTests : IDisposable
         {
             Username = "Testuser",
             Email = "test@user.com",
-            Password = "password"
+            Password = "password",
+            Bio = "uwu",
+            Image = new Uri("https://example.com/image")
         });
         context.SaveChanges();
 
+
         var controller = new UsersController(context, _tokenService);
 
-        // Act
+        // Authenticate 
         var login = await controller.LoginUser(new LoginUserRequest()
         {
             User = new LoginUserRequest.Components()
             {
-                Email = "test@user.com",
-                Password = "password"
+                Email = email,
+                Password = password
             }
         });
 
         var loginResult = Assert.IsType<OkObjectResult>(login);
         var token = Assert.IsType<UserResponse>(loginResult.Value).User.Token;
 
+        // Set credentials in controller
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext()
@@ -87,14 +93,19 @@ public class GetUserInfoTests : IDisposable
                 ),
             }
         };
-
         controller.ControllerContext.HttpContext.Request.Headers["Authorization"] = $"Token {token}";
 
-        // Assert 
+        // Act
         var result = await controller.GetUserInfo();
+
+        // Assert 
         var objectResult = Assert.IsType<OkObjectResult>(result);
         var response = Assert.IsType<UserResponse>(objectResult.Value);
 
         Assert.Equal("Testuser", response.User.Username);
+        Assert.Equal("test@user.com", response.User.Email);
+        Assert.Equal(new Uri("https://example.com/image"), response.User.Image);
+        Assert.Equal("uwu", response.User.Bio);
+        Assert.Equal(token, response.User.Token);
     }
 }

@@ -33,7 +33,7 @@ public class RegisterUserTests : IDisposable
 
     public void Dispose() => _connection.Dispose();
 
-    [Theory]
+    [Theory(DisplayName = "POST new user with whitespace returns 422")]
     [InlineData("", "test@example.com", "testpassword", new string[] {"username"})]
     [InlineData("testuser", "", "testpassword", new string[] {"email"})]
     [InlineData("testuser", "test@example.com", "", new string[] {"password"})]
@@ -66,10 +66,11 @@ public class RegisterUserTests : IDisposable
         }
     }
 
-    [Theory]
+    [Theory(DisplayName = "POST new user with existing case-insensitive email/username returns 422")]
     [InlineData("testuser", "other@example.com", new string[] {"username"})]
     [InlineData("other", "test@example.com", new string[] {"email"})]
     [InlineData("testuser", "test@example.com", new string[] {"username", "email"})]
+    [InlineData("TEstUser", "TEST@example.com", new string[] {"username", "email"})]
     public async Task SupplyDuplicateElements_Returns422(string username, string email, string[] duplicate) {
         // Arrange
         using var context = CreateContext();
@@ -104,7 +105,7 @@ public class RegisterUserTests : IDisposable
         }
     }
 
-    [Theory]
+    [Theory(DisplayName = "POST new user with valid elements returns 201")]
     [InlineData("testuser", "test@example.com", "password")]
     [InlineData("other", "other@example.com", "123")]
     public async Task SupplyValidElements_Returns201(string username, string email, string password) {

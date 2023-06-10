@@ -10,6 +10,9 @@ public interface ITokenService
     string CreateToken(UserModel user);
 }
 
+/// <summary>
+/// Generates tokens
+/// </summary>
 public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;

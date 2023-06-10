@@ -35,7 +35,7 @@ public class LoginUserTests : IDisposable
 
     public void Dispose() => _connection.Dispose();
 
-    [Theory]
+    [Theory(DisplayName = "POST user login with whitespace returns 422")]
     [InlineData("", "testpassword", new string[] { "email" })]
     [InlineData("testuser@office.com", "", new string[] { "password" })]
     [InlineData("", "", new string[] { "email", "password" })]
@@ -77,7 +77,7 @@ public class LoginUserTests : IDisposable
         }
     }
 
-    [Fact]
+    [Fact(DisplayName = "POST user login with invalid email returns 404")]
     public async Task SupplyInvalidEmail_Returns404()
     {
         // Arrange
@@ -111,7 +111,7 @@ public class LoginUserTests : IDisposable
         Assert.Equal(new KeyValuePair<string, string>("email", "doesn't exist in database"), errorlist.Errors.First()); 
     }
 
-    [Fact]
+    [Fact(DisplayName = "POST user login with invalid password returns 422")]
     public async Task SupplyInvalidPassword_Returns422()
     {
         // Arrange
@@ -146,9 +146,10 @@ public class LoginUserTests : IDisposable
         Assert.Equal(new KeyValuePair<string, string>("password", "is incorrect"), errorlist.Errors.First());
     }
 
-    [Theory]
+    [Theory(DisplayName = "POST user login with case-insensitive email returns 200")]
     [InlineData("testuser", "me@me.com", "password123")]
     [InlineData("admin", "admin@me.com", "root")]
+    [InlineData("Admin", "ADMIN@ME.COM", "root")] // Case insensitivity
     public async Task SupplyValidElements_Returns200(string username, string email, string password)
     {
         // Arrange
@@ -182,11 +183,11 @@ public class LoginUserTests : IDisposable
         var result = await controller.LoginUser(request);
 
         // Assert
-        var objectResult = Assert.IsType<OkObjectResult>(result); // Ensures we got a 422
-        var response = Assert.IsType<UserResponse>(objectResult.Value); // Ensures we got an ErrorResponse
+        var objectResult = Assert.IsType<OkObjectResult>(result); // Ensures we got a 200
+        var response = Assert.IsType<UserResponse>(objectResult.Value); // Ensures we got an UserResponse
 
         Assert.Equal(2, context.Users.Count());
-        Assert.Equal(email, response.User.Email);
+        Assert.Equal(email.ToLower(), response.User.Email.ToLower());
         Assert.True(_tokenService.ValidateToken(response.User.Token, username, email));
     }
 }

@@ -65,11 +65,11 @@ public class TestTokenService : ITokenService
 
         var jwt = tokenHandler.ValidateToken(token, validationParameters, out _);
         
-        if (jwt.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value != username) {
+        if (jwt.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value.ToLower() != username.ToLower()) {
             return false;
         }
 
-        if (jwt.Claims.First(c => c.Type == ClaimTypes.Email).Value != email) {
+        if (jwt.Claims.First(c => c.Type == ClaimTypes.Email).Value.ToLower() != email.ToLower()) {
             return false;
         }
 
